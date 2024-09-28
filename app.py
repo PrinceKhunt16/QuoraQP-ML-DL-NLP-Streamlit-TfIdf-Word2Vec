@@ -1,7 +1,8 @@
 import streamlit as st
 import xgboost as xgb
 import pickle
-from modules.text2vec import create_feature_row
+import tensorflow as tf
+from modules.text2vec import create_feature_row_ml_model, create_feature_row_dl_model
 from utils.ensemble_decision import prdiction
 
 st.set_page_config(page_title='QuoraQP')
@@ -26,27 +27,23 @@ result = None
 with open('models/random_forest_model.pkl', 'rb') as f:
     rf_model = pickle.load(f)
 
-# class CustomSpatialDropout1D(tf.keras.layers.SpatialDropout1D):
-#     def __init__(self, rate, **kwargs):
-#         kwargs.pop('trainable', None) 
-#         super().__init__(rate, **kwargs)
-
-# model = tf.keras.models.load_model('models/rnn_model.h5', custom_objects={'SpatialDropout1D': CustomSpatialDropout1D})
-
 xgb_model = xgb.Booster()
 xgb_model.load_model('models/xgboost_model.json')
+dl_model = tf.keras.models.load_model('models/rnn_model.h5')
 
 if st.button('Check'):
     questions = [question1, question2]
 
     if question1 and question2:  
-        feature_row = create_feature_row(question1, question2)
-        feature_dmatrix = xgb.DMatrix(feature_row)
+        feature_row_ml = create_feature_row_ml_model(question1, question2)
+        feature_row_dl = create_feature_row_dl_model(question1, question2)
+        feature_dmatrix = xgb.DMatrix(feature_row_ml)
 
-        rf_predict = rf_model.predict(feature_row)
+        rf_predict = rf_model.predict(feature_row_ml)
         xgb_predict = xgb_model.predict(feature_dmatrix)
+        dl_predict = dl_model.predict(feature_row_dl)
 
-        if prdiction({'r': rf_predict, 'x': xgb_predict}):
+        if prdiction({'r': rf_predict, 'x': xgb_predict, 'l': dl_predict[0]}):
             result = "👍🏻 Both questions express the same idea!" 
         else:
             result = "👎🏻 The questions express different ideas."

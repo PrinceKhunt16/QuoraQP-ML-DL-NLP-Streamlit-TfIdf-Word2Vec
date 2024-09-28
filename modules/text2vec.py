@@ -56,8 +56,11 @@ def compute_token_features(q1, q2):
     return pd.DataFrame([[cwc_min, cwc_max, csc_min, csc_max, ctc_min, ctc_max, last_word_eq, first_word_eq]], columns=['cwc_min', 'cwc_max', 'csc_min', 'csc_max', 'ctc_min', 'ctc_max', 'last_word_eq', 'first_word_eq'])
 
 def compute_len_features(row):
-    len_q1 = len(row['question1'].split())
-    len_q2 = len(row['question2'].split())
+    q1 = row['question1'] if isinstance(row['question1'], str) else ''
+    q2 = row['question2'] if isinstance(row['question2'], str) else ''
+    
+    len_q1 = len(q1.split())
+    len_q2 = len(q2.split())
 
     mean_len = (len_q1 + len_q2) / 2
     abs_len_diff = abs(len_q1 - len_q2)
@@ -72,7 +75,7 @@ def compute_len_features(row):
                 max_length = max(max_length, length)
         return max_length / min(len(s1), len(s2)) if min(len(s1), len(s2)) > 0 else 0
 
-    longest_substr_ratio = longest_common_substring_ratio(row['question1'], row['question2'])
+    longest_substr_ratio = longest_common_substring_ratio(q1, q2)
 
     return pd.DataFrame([[mean_len, abs_len_diff, longest_substr_ratio]], columns=['mean_len', 'abs_len_diff', 'longest_substr_ratio'])
 
@@ -84,7 +87,7 @@ def compute_fuzzy_features(q1, q2):
 
     return pd.DataFrame([[fuzz_ratio, fuzz_partial_ratio, token_sort_ratio, token_set_ratio]],  columns=['fuzz_ratio', 'fuzz_partial_ratio', 'token_sort_ratio', 'token_set_ratio'])
 
-def tfidf(question1, question2):
+def tfidf_ml(question1, question2):
     with open('models/tfidf_vectorizer.pkl', 'rb') as f:
         tfidf_vectorizer = pickle.load(f)
 
@@ -101,7 +104,24 @@ def tfidf(question1, question2):
 
     return tfidf_df
 
-def word2vec(question1, question2):
+def tfidf_dl(question1, question2):
+    with open('models/tfidf_vectorizer_dl.pkl', 'rb') as f:
+        tfidf_vectorizer = pickle.load(f)
+
+    tfidf_q1 = tfidf_vectorizer.transform([question1]).toarray().flatten()
+    tfidf_q2 = tfidf_vectorizer.transform([question2]).toarray().flatten()
+    
+    feature_data = np.concatenate((tfidf_q1, tfidf_q2))
+    num_features_q1 = len(tfidf_q1)
+    num_features_q2 = len(tfidf_q2)
+
+    column_names = [f'tfidf_q1_{i}' for i in range(num_features_q1)] + [f'tfidf_q2_{i}' for i in range(num_features_q2)]
+    
+    tfidf_df = pd.DataFrame([feature_data], columns=column_names)
+
+    return tfidf_df
+
+def word2vec_ml(question1, question2):
     word2vec_model = Word2Vec.load('models/word2vec_model.model')
 
     def get_average_w2v(tokens, model):
@@ -124,15 +144,51 @@ def word2vec(question1, question2):
 
     return w2v_df
 
-def create_feature_row(question1, question2):
+def word2vec_dl(question1, question2):
+    word2vec_model = Word2Vec.load('models/word2vec_model.model')
+
+    def get_average_w2v(tokens, model):
+        words = [word for word in tokens.split() if word in model.wv]
+        
+        if not words:
+            return np.zeros(model.vector_size)  
+        
+        return np.mean(model.wv[words], axis=0)
+
+    w2v_q1 = get_average_w2v(question1, word2vec_model)
+    w2v_q2 = get_average_w2v(question2, word2vec_model)
+
+    feature_data = np.concatenate((w2v_q1, w2v_q2))
+    num_features_q1 = len(w2v_q1)
+    num_features_q2 = len(w2v_q2)
+    column_names = [f'w2v_q1_{i}' for i in range(num_features_q1)] + [f'w2v_q2_{i}' for i in range(num_features_q2)]
+    
+    w2v_df = pd.DataFrame([feature_data], columns=column_names)
+
+    return w2v_df
+
+def create_feature_row_ml_model(question1, question2):
     q1_processed = text_preprocessor(question1)
     q2_processed = text_preprocessor(question2)
     jaccard = jaccard_similarity(q1_processed, q2_processed)
     token_features = compute_token_features(q1_processed, q2_processed)
     len_features = compute_len_features(pd.Series({'question1': q1_processed, 'question2': q2_processed}))
     fuzzy_features = compute_fuzzy_features(q1_processed, q2_processed)
-    tfidf_features = tfidf(question1, question2)
-    w2v_features = word2vec(question1, question2)
+    tfidf_features = tfidf_ml(question1, question2)
+    w2v_features = word2vec_ml(question1, question2)
+    feature_row = pd.concat([jaccard, token_features, len_features, fuzzy_features, tfidf_features, w2v_features], axis=1)
+    
+    return feature_row
+
+def create_feature_row_dl_model(question1, question2):
+    q1_processed = text_preprocessor(question1)
+    q2_processed = text_preprocessor(question2)
+    jaccard = jaccard_similarity(q1_processed, q2_processed)
+    token_features = compute_token_features(q1_processed, q2_processed)
+    len_features = compute_len_features(pd.Series({'question1': q1_processed, 'question2': q2_processed}))
+    fuzzy_features = compute_fuzzy_features(q1_processed, q2_processed)
+    tfidf_features = tfidf_dl(question1, question2)
+    w2v_features = word2vec_dl(question1, question2)
     feature_row = pd.concat([jaccard, token_features, len_features, fuzzy_features, tfidf_features, w2v_features], axis=1)
     
     return feature_row
