@@ -44,12 +44,14 @@ def compute_token_features(q1, q2):
     cwc = len(tokens_q1.intersection(tokens_q2))
     csc = len(tokens_q1.intersection(tokens_q2).intersection(stopwords.words('english')))
     len_q1, len_q2 = len(tokens_q1), len(tokens_q2)
+    
     cwc_min = cwc / min(len_q1, len_q2) if min(len_q1, len_q2) > 0 else 0
     cwc_max = cwc / max(len_q1, len_q2) if max(len_q1, len_q2) > 0 else 0
     csc_min = csc / min(len([word for word in tokens_q1 if word in stopwords.words('english')]), len([word for word in tokens_q2 if word in stopwords.words('english')])) if min(len([word for word in tokens_q1 if word in stopwords.words('english')]), len([word for word in tokens_q2 if word in stopwords.words('english')])) > 0 else 0
     csc_max = csc / max(len([word for word in tokens_q1 if word in stopwords.words('english')]), len([word for word in tokens_q2 if word in stopwords.words('english')])) if max(len([word for word in tokens_q1 if word in stopwords.words('english')]), len([word for word in tokens_q2 if word in stopwords.words('english')])) > 0 else 0
     ctc_min = cwc / min(len_q1, len_q2) if min(len_q1, len_q2) > 0 else 0
     ctc_max = cwc / max(len_q1, len_q2) if max(len_q1, len_q2) > 0 else 0
+    
     last_word_eq = int(q1.split()[-1] == q2.split()[-1]) if q1.split() and q2.split() else 0
     first_word_eq = int(q1.split()[0] == q2.split()[0]) if q1.split() and q2.split() else 0
 
@@ -77,7 +79,7 @@ def compute_len_features(row):
 
     longest_substr_ratio = longest_common_substring_ratio(q1, q2)
 
-    return pd.DataFrame([[mean_len, abs_len_diff, longest_substr_ratio]], columns=['mean_len', 'abs_len_diff', 'longest_substr_ratio'])
+    return pd.DataFrame([[mean_len, abs_len_diff, longest_substr_ratio]],  columns=['mean_len', 'abs_len_diff', 'longest_substr_ratio'])
 
 def compute_fuzzy_features(q1, q2):
     fuzz_ratio = fuzz.ratio(q1, q2)
