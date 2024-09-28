@@ -4,7 +4,7 @@ def prdiction(predictions):
 
     threshold = 0.5
 
-    if rnn_probability >= threshold and xgb_probability >= threshold:
+    if rnn_probability >= threshold or xgb_probability >= threshold:
         return True
     else:
         return False

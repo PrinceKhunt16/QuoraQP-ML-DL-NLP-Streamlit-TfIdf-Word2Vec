@@ -1,6 +1,5 @@
 import streamlit as st
 import xgboost as xgb
-import pickle
 import tensorflow as tf
 from modules.text2vec import create_feature_row_ml_model, create_feature_row_dl_model
 from utils.ensemble_decision import prdiction
@@ -24,9 +23,6 @@ question1 = st.text_input("Question 1:")
 question2 = st.text_input("Question 2:")
 result = None
 
-with open('models/random_forest_model.pkl', 'rb') as f:
-    rf_model = pickle.load(f)
-
 xgb_model = xgb.Booster()
 xgb_model.load_model('models/xgboost_model.json')
 dl_model = tf.keras.models.load_model('models/rnn_model.h5')
@@ -39,11 +35,10 @@ if st.button('Check'):
         feature_row_dl = create_feature_row_dl_model(question1, question2)
         feature_dmatrix = xgb.DMatrix(feature_row_ml)
 
-        rf_predict = rf_model.predict(feature_row_ml)
         xgb_predict = xgb_model.predict(feature_dmatrix)
         dl_predict = dl_model.predict(feature_row_dl)
 
-        if prdiction({'r': rf_predict, 'x': xgb_predict, 'l': dl_predict[0]}):
+        if prdiction({'x': xgb_predict, 'l': dl_predict[0]}):
             result = "👍🏻 Both questions express the same idea!" 
         else:
             result = "👎🏻 The questions express different ideas."
