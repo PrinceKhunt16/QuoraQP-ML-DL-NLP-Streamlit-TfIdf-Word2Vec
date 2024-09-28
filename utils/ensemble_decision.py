@@ -2,13 +2,11 @@ def prdiction(predictions):
     rf_prediction = predictions['r']
     xgb_probability = predictions['x']
 
-    threshold = 0.4
-
-    if rf_prediction == 1 and xgb_probability >= threshold:
-        return True 
-    elif xgb_probability >= threshold:
+    threshold = 0.5
+    
+    if xgb_probability > threshold:
         return True
-    elif rf_prediction == 0 and xgb_probability < threshold:
-        return False  
+    elif rf_prediction == 1:
+        return True
     else:
         return False
