@@ -11,7 +11,7 @@ from fuzzywuzzy import fuzz
 from gensim.models import Word2Vec
 nltk.download('stopwords')
 nltk.download('punkt')
-nltk.download('punkt_tab')
+nltk.download('wordnet')
 
 def text_preprocessor(text):
     if pd.isna(text):
