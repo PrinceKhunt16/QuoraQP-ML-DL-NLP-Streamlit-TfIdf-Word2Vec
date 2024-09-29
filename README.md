@@ -1,6 +1,6 @@
 # QuoraQP - Quora Question Pair Prediction <a href="https://quoraquestionpair.streamlit.app/" target="_blank">Live Demo</a>
 
-## UI 
+## Website 
 
 ![SS1](ui/ss1.png)
 ![SS2](ui/ss2.png)
