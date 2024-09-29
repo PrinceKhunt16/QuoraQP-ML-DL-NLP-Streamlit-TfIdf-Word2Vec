@@ -28,23 +28,25 @@ xgb_model.load_model('models/xgboost_model.json')
 dl_model = tf.keras.models.load_model('models/rnn_model.h5')
 
 if st.button('Check'):
-    questions = [question1, question2]
+    try:
+        questions = [question1, question2]
 
-    if question1 and question2:  
-        feature_row_ml = create_feature_row_ml_model(question1, question2)
-        feature_row_dl = create_feature_row_dl_model(question1, question2)
-        feature_dmatrix = xgb.DMatrix(feature_row_ml)
+        if question1 and question2:  
+            feature_row_ml = create_feature_row_ml_model(question1, question2)
+            feature_row_dl = create_feature_row_dl_model(question1, question2)
+            feature_dmatrix = xgb.DMatrix(feature_row_ml)
 
-        xgb_predict = xgb_model.predict(feature_dmatrix)
-        dl_predict = dl_model.predict(feature_row_dl)
+            xgb_predict = xgb_model.predict(feature_dmatrix)
+            dl_predict = dl_model.predict(feature_row_dl)
 
-        if prdiction({'x': xgb_predict, 'l': dl_predict[0]}):
-            result = "👍🏻 Both questions express the same idea!" 
+            if prdiction({'x': xgb_predict, 'l': dl_predict[0]}):
+                result = "👍🏻 Both questions express the same idea!" 
+            else:
+                result = "👎🏻 The questions express different ideas."
         else:
-            result = "👎🏻 The questions express different ideas."
-
-    else:
-        result = "😠 Please enter both questions."
-
+            result = "😠 Please enter both questions."
+    except Exception as e:
+        result = "❗ An error occurred. Please click on the three dots above and select 'Rerun'. If the issue persists, contact me for further assistance! so i can make a better solution. Thanks!"
+        
 if result:
     st.markdown(f"<h4 style='font-size:20px;'>{result}</h4>", unsafe_allow_html=True)
