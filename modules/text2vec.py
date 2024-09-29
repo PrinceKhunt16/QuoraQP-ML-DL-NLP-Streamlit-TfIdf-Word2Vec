@@ -12,6 +12,8 @@ from gensim.models import Word2Vec
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
+nltk.download('punkt_tab')
+nltk.download('omw-1.4')
 
 def text_preprocessor(text):
     if pd.isna(text):
