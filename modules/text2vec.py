@@ -3,11 +3,14 @@ import pandas as pd
 import string
 import re
 import pickle
+import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from fuzzywuzzy import fuzz
 from gensim.models import Word2Vec
+nltk.download('stopwords')
+nltk.download('punkt')
 
 def text_preprocessor(text):
     if pd.isna(text):
