@@ -26,7 +26,6 @@ result = None
 xgb_model = xgb.Booster()
 xgb_model.load_model('models/xgboost_model.json')
 dl_model = tf.keras.models.load_model('models/rnn_model.h5')
-dl_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 if st.button('Check'):
     questions = [question1, question2]
