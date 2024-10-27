@@ -3,8 +3,6 @@
 ## Website 
 
 ![SS1](ui/ss1.png)
-![SS2](ui/ss2.png)
-![SS3](ui/ss3.png)
 
 ## Description
 
