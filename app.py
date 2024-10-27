@@ -6,6 +6,9 @@ from utils.ensemble_decision import prdiction
 
 st.set_page_config(page_title='QuoraQP')
 
+with open("style.css") as css:
+    st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
+
 st.markdown(
     "<h3 style='font-size:34px;'>Quora Question Pair Detector - "
     "<a href='https://www.linkedin.com/in/prince-khunt-linked-in/' target='_blank'>Prince Khunt</a></h3>", 
